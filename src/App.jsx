@@ -10,7 +10,8 @@ function App() {
             buttonSize: 60,
             rowGap: 10,
             colGap: 10,
-            rowOffset: 30 // Half of button size usually
+            rowOffset: 30, // Half of button size usually
+            accidentalType: 'sharp'
         };
     });
 

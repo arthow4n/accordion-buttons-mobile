@@ -10,8 +10,8 @@ export const Accordion = ({ settings }) => {
     const pointersRef = useRef(new Map()); // pointerId -> note
 
     const buttons = useMemo(() => {
-        return generateLayout(5, 14, 3); // 5 rows, 14 cols, start at C3
-    }, []);
+        return generateLayout(5, 22, 2, settings.accidentalType); // 5 rows, 22 cols, start at C2
+    }, [settings.accidentalType]);
 
     const handlePointerDown = (e) => {
         e.preventDefault(); // Prevent scrolling
@@ -141,7 +141,12 @@ export const Accordion = ({ settings }) => {
                 // We use settings.rowOffset to shift adjacent rows.
                 // Usually Row 1 is shifted down by half size relative to Row 0.
                 // So shift = boardRow * settings.rowOffset
-                const top = 50 + btn.boardCol * (settings.buttonSize + settings.rowGap) + (btn.boardRow * settings.rowOffset);
+                let top = 50 + btn.boardCol * (settings.buttonSize + settings.rowGap) + (btn.boardRow * settings.rowOffset);
+
+                // Shift 4th and 5th rows (indices 3 and 4) up by one button step to align with 1st and 2nd rows
+                if (btn.boardRow >= 3) {
+                    top -= (2 * settings.rowOffset);
+                }
 
                 const isActive = activeNotes.has(btn.note);
 

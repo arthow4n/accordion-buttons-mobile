@@ -6,7 +6,7 @@
 
 const BASE_NOTE = 48; // C3
 
-export const generateLayout = (numRows = 5, numCols = 13, startOctave = 3) => {
+export const generateLayout = (numRows = 5, numCols = 13, startOctave = 3, accidentalType = 'sharp') => {
     const buttons = [];
 
     // Row definitions (offsets from C)
@@ -39,7 +39,7 @@ export const generateLayout = (numRows = 5, numCols = 13, startOctave = 3) => {
                 boardRow: r, // Vertical column index
                 boardCol: c, // Vertical position index
                 note: note,
-                label: getNoteLabel(note),
+                label: getNoteLabel(note, accidentalType),
                 isBlack: isBlackKey(note),
                 frequency: midiToFreq(note)
             });
@@ -48,12 +48,14 @@ export const generateLayout = (numRows = 5, numCols = 13, startOctave = 3) => {
     return buttons;
 };
 
-const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const NOTES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
-const getNoteLabel = (midi) => {
+const getNoteLabel = (midi, type = 'sharp') => {
     const noteIndex = midi % 12;
     const octave = Math.floor(midi / 12) - 1;
-    return `${NOTES[noteIndex]}${octave}`;
+    const notes = type === 'flat' ? NOTES_FLAT : NOTES_SHARP;
+    return `${notes[noteIndex]}${octave}`;
 };
 
 const isBlackKey = (midi) => {

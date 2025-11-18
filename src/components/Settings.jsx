@@ -2,7 +2,8 @@ import React from 'react';
 
 export const Settings = ({ settings, updateSettings, onClose }) => {
     const handleChange = (key, value) => {
-        updateSettings({ ...settings, [key]: parseInt(value, 10) });
+        const parsedValue = key === 'accidentalType' ? value : parseInt(value, 10);
+        updateSettings({ ...settings, [key]: parsedValue });
     };
 
     return (
@@ -22,6 +23,32 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
             overflowY: 'auto'
         }}>
             <h2>Settings</h2>
+
+            <div className="control-group">
+                <label>Accidentals:</label>
+                <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <input
+                            type="radio"
+                            name="accidentalType"
+                            value="sharp"
+                            checked={settings.accidentalType === 'sharp'}
+                            onChange={(e) => handleChange('accidentalType', e.target.value)}
+                        />
+                        Sharps (#)
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <input
+                            type="radio"
+                            name="accidentalType"
+                            value="flat"
+                            checked={settings.accidentalType === 'flat'}
+                            onChange={(e) => handleChange('accidentalType', e.target.value)}
+                        />
+                        Flats (b)
+                    </label>
+                </div>
+            </div>
 
             <div className="control-group">
                 <label>Button Size (px): {settings.buttonSize}</label>

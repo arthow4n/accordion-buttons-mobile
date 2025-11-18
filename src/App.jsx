@@ -11,7 +11,12 @@ function App() {
             rowGap: 10,
             colGap: 10,
             rowOffset: 30, // Half of button size usually
-            accidentalType: 'sharp'
+            accidentalType: 'sharp',
+            panX: 0,
+            panY: 0,
+            isLocked: true,
+            textRotation: 0,
+            volume: 100
         };
     });
 
@@ -21,7 +26,7 @@ function App() {
 
     return (
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-            <Accordion settings={settings} />
+            <Accordion settings={settings} updateSettings={setSettings} />
 
             <button
                 onClick={() => setShowSettings(true)}

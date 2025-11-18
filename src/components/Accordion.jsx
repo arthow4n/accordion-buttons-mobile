@@ -2,20 +2,49 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { generateLayout } from '../utils/layout';
 import { audio } from '../utils/audio';
 
-export const Accordion = ({ settings }) => {
+export const Accordion = ({ settings, updateSettings }) => {
     const [activeNotes, setActiveNotes] = useState(new Set());
     const containerRef = useRef(null);
 
     // Store active pointers and which note they are currently triggering
     const pointersRef = useRef(new Map()); // pointerId -> note
 
+    // Panning state
+    const dragRef = useRef({
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        initialPanX: 0,
+        initialPanY: 0
+    });
+
     const buttons = useMemo(() => {
         return generateLayout(5, 22, 2, settings.accidentalType); // 5 rows, 22 cols, start at C2
     }, [settings.accidentalType]);
 
+    useEffect(() => {
+        // Convert 0-100 to 0.0-1.0, but keep max volume reasonable (e.g., 0.5 was original max)
+        // The user asked for 0-100. Let's map 100 to 0.5 (original master gain)
+        const vol = (settings.volume ?? 100) / 100 * 0.5;
+        audio.setVolume(vol);
+    }, [settings.volume]);
+
     const handlePointerDown = (e) => {
         e.preventDefault(); // Prevent scrolling
         audio.init(); // Ensure audio context is resumed
+
+        if (!settings.isLocked) {
+            // Start panning
+            dragRef.current = {
+                isDragging: true,
+                startX: e.clientX,
+                startY: e.clientY,
+                initialPanX: settings.panX || 0,
+                initialPanY: settings.panY || 0
+            };
+            containerRef.current.setPointerCapture(e.pointerId);
+            return;
+        }
 
         const note = getNoteFromEvent(e);
         if (note !== null) {
@@ -27,9 +56,19 @@ export const Accordion = ({ settings }) => {
     const handlePointerMove = (e) => {
         e.preventDefault();
 
-        // If this pointer is not tracked (e.g. started outside), ignore or start tracking?
-        // Usually better to track if buttons are pressed.
-        // But for glissando, we want to track movement.
+        if (!settings.isLocked) {
+            if (dragRef.current.isDragging) {
+                const dx = e.clientX - dragRef.current.startX;
+                const dy = e.clientY - dragRef.current.startY;
+
+                updateSettings(prev => ({
+                    ...prev,
+                    panX: dragRef.current.initialPanX + dx,
+                    panY: dragRef.current.initialPanY + dy
+                }));
+            }
+            return;
+        }
 
         // Check if we are tracking this pointer
         if (!pointersRef.current.has(e.pointerId) && e.buttons === 0) return;
@@ -52,6 +91,15 @@ export const Accordion = ({ settings }) => {
 
     const handlePointerUp = (e) => {
         e.preventDefault();
+
+        if (!settings.isLocked) {
+            if (dragRef.current.isDragging) {
+                dragRef.current.isDragging = false;
+                containerRef.current.releasePointerCapture(e.pointerId);
+            }
+            return;
+        }
+
         const note = pointersRef.current.get(e.pointerId);
         if (note !== undefined) {
             stopNote(note, e.pointerId);
@@ -119,7 +167,8 @@ export const Accordion = ({ settings }) => {
                 position: 'relative',
                 overflow: 'hidden',
                 touchAction: 'none',
-                backgroundColor: '#222'
+                backgroundColor: '#222',
+                cursor: !settings.isLocked ? 'grab' : 'default'
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -127,61 +176,78 @@ export const Accordion = ({ settings }) => {
             onPointerCancel={handlePointerUp}
             onPointerLeave={handlePointerUp}
         >
-            {buttons.map(btn => {
-                // Layout calculation
-                // boardRow (0..4) -> X axis
-                // boardCol (0..12) -> Y axis
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                transform: `translate(${settings.panX || 0}px, ${settings.panY || 0}px)`,
+                transition: !settings.isLocked && dragRef.current.isDragging ? 'none' : 'transform 0.1s ease-out',
+                pointerEvents: !settings.isLocked ? 'none' : 'auto' // Disable button interaction when panning
+            }}>
+                {buttons.map(btn => {
+                    // Layout calculation
+                    // boardRow (0..4) -> X axis
+                    // boardCol (0..12) -> Y axis
 
-                // X position: row index * (size + gap)
-                // We might want to center the whole board or start from left.
-                // Let's add some padding.
-                const left = 20 + btn.boardRow * (settings.buttonSize + settings.colGap);
+                    // X position: row index * (size + gap)
+                    // We might want to center the whole board or start from left.
+                    // Let's add some padding.
+                    const left = 20 + btn.boardRow * (settings.buttonSize + settings.colGap);
 
-                // Y position: col index * (size + gap) + (row offset)
-                // We use settings.rowOffset to shift adjacent rows.
-                // Usually Row 1 is shifted down by half size relative to Row 0.
-                // So shift = boardRow * settings.rowOffset
-                let top = 50 + btn.boardCol * (settings.buttonSize + settings.rowGap) + (btn.boardRow * settings.rowOffset);
+                    // Y position: col index * (size + gap) + (row offset)
+                    // We use settings.rowOffset to shift adjacent rows.
+                    // Usually Row 1 is shifted down by half size relative to Row 0.
+                    // So shift = boardRow * settings.rowOffset
+                    let top = 50 + btn.boardCol * (settings.buttonSize + settings.rowGap) + (btn.boardRow * settings.rowOffset);
 
-                // Shift 4th and 5th rows (indices 3 and 4) up by one button step to align with 1st and 2nd rows
-                if (btn.boardRow >= 3) {
-                    top -= (2 * settings.rowOffset);
-                }
+                    // Shift 4th and 5th rows (indices 3 and 4) up by one button step to align with 1st and 2nd rows
+                    if (btn.boardRow >= 3) {
+                        top -= (2 * settings.rowOffset);
+                    }
 
-                const isActive = activeNotes.has(btn.note);
+                    const isActive = activeNotes.has(btn.note);
 
-                return (
-                    <div
-                        key={btn.id}
-                        data-note={btn.note}
-                        style={{
-                            position: 'absolute',
-                            top: `${top}px`,
-                            left: `${left}px`,
-                            width: `${settings.buttonSize}px`,
-                            height: `${settings.buttonSize}px`,
-                            borderRadius: '50%',
-                            backgroundColor: isActive
-                                ? 'var(--button-active)'
-                                : (btn.isBlack ? 'var(--button-black)' : 'var(--button-white)'),
-                            border: '2px solid #555',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: isActive ? '#000' : (btn.isBlack ? '#fff' : '#000'),
-                            fontWeight: 'bold',
-                            fontSize: `${settings.buttonSize * 0.35}px`,
-                            userSelect: 'none',
-                            boxShadow: isActive ? '0 0 15px var(--button-active)' : '2px 2px 5px rgba(0,0,0,0.5)',
-                            transform: isActive ? 'scale(0.95)' : 'scale(1)',
-                            transition: 'transform 0.05s, background-color 0.05s',
-                            zIndex: 10
-                        }}
-                    >
-                        {btn.label}
-                    </div>
-                );
-            })}
+                    return (
+                        <div
+                            key={btn.id}
+                            data-note={btn.note}
+                            style={{
+                                position: 'absolute',
+                                top: `${top}px`,
+                                left: `${left}px`,
+                                width: `${settings.buttonSize}px`,
+                                height: `${settings.buttonSize}px`,
+                                borderRadius: '50%',
+                                backgroundColor: isActive
+                                    ? 'var(--button-active)'
+                                    : (btn.isBlack ? 'var(--button-black)' : 'var(--button-white)'),
+                                border: '2px solid #555',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: isActive ? '#000' : (btn.isBlack ? '#fff' : '#000'),
+                                fontWeight: 'bold',
+                                fontSize: `${settings.buttonSize * 0.35}px`,
+                                userSelect: 'none',
+                                boxShadow: isActive ? '0 0 15px var(--button-active)' : '2px 2px 5px rgba(0,0,0,0.5)',
+                                transform: isActive ? 'scale(0.95)' : 'scale(1)',
+                                transition: 'transform 0.05s, background-color 0.05s',
+                                zIndex: 10,
+                                pointerEvents: 'auto'
+                            }}
+                        >
+                            <span style={{
+                                transform: `rotate(${settings.textRotation || 0}deg)`,
+                                display: 'inline-block'
+                            }}>
+                                {btn.label}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 };

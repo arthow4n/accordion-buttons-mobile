@@ -52,7 +52,8 @@ const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 const getNoteLabel = (midi) => {
     const noteIndex = midi % 12;
-    return NOTES[noteIndex];
+    const octave = Math.floor(midi / 12) - 1;
+    return `${NOTES[noteIndex]}${octave}`;
 };
 
 const isBlackKey = (midi) => {

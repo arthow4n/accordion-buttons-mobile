@@ -66,6 +66,33 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
                 </button>
             </div>
 
+            <button
+                onClick={() => {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(e => {
+                            console.log(`Error attempting to enable full-screen mode: ${e.message} (${e.name})`);
+                        });
+                    } else {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        }
+                    }
+                }}
+                style={{
+                    padding: '15px',
+                    backgroundColor: '#444',
+                    border: '1px solid #666',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    width: '100%'
+                }}
+            >
+                Go Fullscreen
+            </button>
+
             <div className="control-group">
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2em', color: '#fff' }}>
                     <input
@@ -206,6 +233,7 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
             </div>
 
             <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
+
                 <button
                     onClick={handleReset}
                     style={{
@@ -220,7 +248,7 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
                         cursor: 'pointer'
                     }}
                 >
-                    Reset Defaults
+                    Reset
                 </button>
                 <button
                     onClick={onClose}

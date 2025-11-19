@@ -2,13 +2,31 @@
   --bg-color: #222;
   --button-white: #f0f0f0;
   --button-black: #333;
-  --button-active: #ffcd38; /* Gold/Yellow highlight */
+  --button-active: #ffcd38;
+  /* Gold/Yellow highlight */
   --text-color: #eee;
 }
 
 body {
   background-color: var(--bg-color);
-  touch-action: none; /* Prevent default touch actions like scrolling */
+  touch-action: none;
+  /* Prevent default touch actions like scrolling */
   user-select: none;
   -webkit-user-select: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
 }

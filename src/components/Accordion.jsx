@@ -240,7 +240,8 @@ export const Accordion = ({ settings, updateSettings }) => {
                         >
                             <span style={{
                                 transform: `rotate(${settings.textRotation || 0}deg)`,
-                                display: 'inline-block'
+                                display: 'inline-block',
+                                pointerEvents: 'none'
                             }}>
                                 {btn.label}
                             </span>

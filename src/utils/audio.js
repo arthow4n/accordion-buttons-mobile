@@ -1,76 +1,57 @@
-// Audio Engine
-// Pure Synthesizer implementation
-
-const midiToFreq = (midi) => {
-    return 440 * Math.pow(2, (midi - 69) / 12);
-};
+import * as Tone from 'tone';
 
 export class AudioEngine {
     constructor() {
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.activeNodes = {}; // Map note -> { source, gain }
-        this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = 0.5;
-        this.masterGain.connect(this.ctx.destination);
+        // Initialize synth with accordion-like characteristics
+        this.synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: {
+                type: 'sawtooth'
+            },
+            envelope: {
+                attack: 0.05,
+                decay: 0.1,
+                sustain: 0.3,
+                release: 0.1
+            }
+        });
+
+        // Filter to soften the sawtooth wave
+        this.filter = new Tone.Filter(3000, "lowpass");
+        
+        // Master gain for volume control
+        this.gain = new Tone.Gain(0.5);
+
+        // Chain: Synth -> Filter -> Gain -> Destination
+        this.synth.connect(this.filter);
+        this.filter.connect(this.gain);
+        this.gain.toDestination();
     }
 
     async init() {
-        if (this.ctx.state === 'suspended') {
-            await this.ctx.resume();
-        }
+        await Tone.start();
     }
 
     play(note, frequency) {
-        if (this.activeNodes[note]) {
-            return;
-        }
-        this.playSynth(note, frequency);
+        // We use the note (MIDI number) to get the note name (e.g. "C4")
+        // This ensures consistency between play and stop, avoiding floating point issues with frequency
+        const noteName = Tone.Frequency(note, "midi").toNote();
+        
+        // Trigger attack if not already playing (PolySynth handles multiple voices, 
+        // but we want to avoid re-triggering the same note if it's held? 
+        // Tone.PolySynth handles re-triggering by stealing or adding voices. 
+        // Accordion.jsx handles logic to not call play if already active.
+        this.synth.triggerAttack(noteName);
     }
 
     stop(note) {
-        if (this.activeNodes[note]) {
-            const { source, gain } = this.activeNodes[note];
-
-            // Release envelope
-            const now = this.ctx.currentTime;
-            gain.gain.cancelScheduledValues(now);
-            gain.gain.setValueAtTime(gain.gain.value, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.1); // Short release
-
-            source.stop(now + 0.1);
-
-            delete this.activeNodes[note];
-        }
-    }
-
-    playSynth(note, frequency) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        // Accordion-like sound: Sawtooth or Square with some filtering
-        osc.type = 'sawtooth';
-        osc.frequency.value = frequency;
-
-        // Filter to soften the sawtooth
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 3000;
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.masterGain);
-
-        const now = this.ctx.currentTime;
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.5, now + 0.05); // Attack
-
-        osc.start(now);
-
-        this.activeNodes[note] = { source: osc, gain: gain };
+        const noteName = Tone.Frequency(note, "midi").toNote();
+        this.synth.triggerRelease(noteName);
     }
 
     setVolume(val) {
-        this.masterGain.gain.value = val;
+        // val is linear gain (0.0 to 0.5 based on current Accordion.jsx logic)
+        // Tone.Gain.gain.value accepts linear values
+        this.gain.gain.value = val;
     }
 }
 

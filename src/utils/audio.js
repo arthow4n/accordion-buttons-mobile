@@ -2,22 +2,118 @@ import * as Tone from 'tone';
 
 export class AudioEngine {
     constructor() {
-        // Initialize synth with accordion-like characteristics
-        this.synth = new Tone.PolySynth(Tone.Synth, {
-            oscillator: {
-                type: 'sawtooth'
+        this.presets = {
+            // Single Reed Registers
+            clarinet: { // 8'
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3000,
+                filterType: 'lowpass',
+                octaves: [0]
             },
-            envelope: {
-                attack: 0.05,
-                decay: 0.1,
-                sustain: 0.3,
-                release: 0.1
+            bassoon: { // 16'
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 2000,
+                filterType: 'lowpass',
+                octaves: [-12]
+            },
+            piccolo: { // 4'
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 4000,
+                filterType: 'lowpass',
+                octaves: [12]
+            },
+
+            // Dual Reed Registers
+            violin: { // 8' + 8' (detuned)
+                oscillator: { type: 'fatsawtooth', count: 2, spread: 15 },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3500,
+                filterType: 'lowpass',
+                octaves: [0]
+            },
+            celeste: { // 8' + 8' (Swing - mild detune)
+                oscillator: { type: 'fatsawtooth', count: 2, spread: 10 },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3500,
+                filterType: 'lowpass',
+                octaves: [0]
+            },
+            bandoneon: { // 16' + 8'
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 2500,
+                filterType: 'lowpass',
+                octaves: [-12, 0]
+            },
+            oboe: { // 8' + 4'
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3500,
+                filterType: 'lowpass',
+                octaves: [0, 12]
+            },
+            organ: { // 16' + 4'
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3000,
+                filterType: 'lowpass',
+                octaves: [-12, 12]
+            },
+
+            // Triple/Quad Reed Registers
+            harmonium: { // LMM (16' + 8' + 8' detuned)
+                oscillator: { type: 'fatsawtooth', count: 2, spread: 15 },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3000,
+                filterType: 'lowpass',
+                octaves: [-12, 0]
+            },
+            master: { // LMM (Dry) or LMH - Let's keep previous "Master" as LMH (16+8+4 dry)
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3000,
+                filterType: 'lowpass',
+                octaves: [-12, 0, 12]
+            },
+            full_master: { // LMMH (16' + 8' + 8' + 4')
+                oscillator: { type: 'fatsawtooth', count: 2, spread: 15 },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 3500,
+                filterType: 'lowpass',
+                octaves: [-12, 0, 12]
+            },
+            musette: { // 8' + 8' + 8' (detuned)
+                oscillator: { type: 'fatsawtooth', count: 3, spread: 30 },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.1 },
+                filterFreq: 4000,
+                filterType: 'lowpass',
+                octaves: [0]
+            },
+
+            // Legacy/Default
+            accordion: { // Default balanced sound (similar to Violin or Master but simpler)
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.05, decay: 0.1, sustain: 0.3, release: 0.1 },
+                filterFreq: 3000,
+                filterType: 'lowpass',
+                octaves: [0]
             }
+        };
+
+        this.currentPreset = this.presets.accordion;
+
+        // Initialize synth with default (accordion)
+        this.synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: this.currentPreset.oscillator,
+            envelope: this.currentPreset.envelope
         });
 
-        // Filter to soften the sawtooth wave
-        this.filter = new Tone.Filter(3000, "lowpass");
-        
+        // Filter
+        this.filter = new Tone.Filter(this.currentPreset.filterFreq, this.currentPreset.filterType);
+
         // Master gain for volume control
         this.gain = new Tone.Gain(0.5);
 
@@ -31,21 +127,40 @@ export class AudioEngine {
         await Tone.start();
     }
 
+    setPreset(presetName) {
+        // Release all currently playing notes to avoid stuck notes when switching
+        this.synth.releaseAll();
+
+        const preset = this.presets[presetName] || this.presets.accordion;
+        this.currentPreset = preset;
+
+        // Update Synth
+        this.synth.set({
+            oscillator: preset.oscillator,
+            envelope: preset.envelope
+        });
+
+        // Update Filter
+        this.filter.frequency.value = preset.filterFreq;
+        this.filter.type = preset.filterType;
+    }
+
     play(note, frequency) {
-        // We use the note (MIDI number) to get the note name (e.g. "C4")
-        // This ensures consistency between play and stop, avoiding floating point issues with frequency
-        const noteName = Tone.Frequency(note, "midi").toNote();
-        
-        // Trigger attack if not already playing (PolySynth handles multiple voices, 
-        // but we want to avoid re-triggering the same note if it's held? 
-        // Tone.PolySynth handles re-triggering by stealing or adding voices. 
-        // Accordion.jsx handles logic to not call play if already active.
-        this.synth.triggerAttack(noteName);
+        // Play all octaves defined in the preset
+        const octaves = this.currentPreset.octaves || [0];
+        octaves.forEach(offset => {
+            const noteName = Tone.Frequency(note + offset, "midi").toNote();
+            this.synth.triggerAttack(noteName);
+        });
     }
 
     stop(note) {
-        const noteName = Tone.Frequency(note, "midi").toNote();
-        this.synth.triggerRelease(noteName);
+        // Stop all octaves defined in the preset
+        const octaves = this.currentPreset.octaves || [0];
+        octaves.forEach(offset => {
+            const noteName = Tone.Frequency(note + offset, "midi").toNote();
+            this.synth.triggerRelease(noteName);
+        });
     }
 
     setVolume(val) {

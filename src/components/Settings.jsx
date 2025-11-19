@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Settings = ({ settings, updateSettings, onClose }) => {
     const handleChange = (key, value) => {
-        if (key === 'accidentalType' || key === 'isLocked') {
+        if (key === 'accidentalType' || key === 'isLocked' || key === 'register') {
             updateSettings({ ...settings, [key]: value });
             return;
         }
@@ -105,6 +105,42 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
                         Flats (b)
                     </label>
                 </div>
+            </div>
+
+            <div className="control-group">
+                <label style={{ color: '#fff' }}>Sound Register</label>
+                <select
+                    value={settings.register || 'accordion'}
+                    onChange={(e) => handleChange('register', e.target.value)}
+                    style={{
+                        ...inputStyle,
+                        backgroundColor: '#333',
+                        color: '#fff',
+                        border: '1px solid #555'
+                    }}
+                >
+                    <optgroup label="Standard">
+                        <option value="accordion">Accordion (Default)</option>
+                        <option value="master">Master (LMH)</option>
+                        <option value="full_master">Full Master (LMMH)</option>
+                    </optgroup>
+                    <optgroup label="Single Reed">
+                        <option value="clarinet">Clarinet (8')</option>
+                        <option value="bassoon">Bassoon (16')</option>
+                        <option value="piccolo">Piccolo (4')</option>
+                    </optgroup>
+                    <optgroup label="Dual Reed">
+                        <option value="violin">Violin (MM)</option>
+                        <option value="celeste">Celeste (MM Swing)</option>
+                        <option value="bandoneon">Bandoneon (LM)</option>
+                        <option value="oboe">Oboe (MH)</option>
+                        <option value="organ">Organ (LH)</option>
+                    </optgroup>
+                    <optgroup label="Triple/Quad Reed">
+                        <option value="musette">Musette (MMM)</option>
+                        <option value="harmonium">Harmonium (LMM)</option>
+                    </optgroup>
+                </select>
             </div>
 
             <div className="control-group">

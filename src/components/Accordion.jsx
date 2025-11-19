@@ -29,6 +29,10 @@ export const Accordion = ({ settings, updateSettings }) => {
         audio.setVolume(vol);
     }, [settings.volume]);
 
+    useEffect(() => {
+        audio.setPreset(settings.register || 'accordion');
+    }, [settings.register]);
+
     const handlePointerDown = (e) => {
         e.preventDefault(); // Prevent scrolling
         audio.init(); // Ensure audio context is resumed

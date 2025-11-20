@@ -69,7 +69,7 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
             <button
                 onClick={() => {
                     if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen().catch(e => {
+                        document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(e => {
                             console.log(`Error attempting to enable full-screen mode: ${e.message} (${e.name})`);
                         });
                     } else {

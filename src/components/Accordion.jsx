@@ -236,7 +236,7 @@ export const Accordion = ({ settings, updateSettings }) => {
                                 fontSize: `${settings.buttonSize * 0.35}px`,
                                 userSelect: 'none',
                                 boxShadow: isActive ? '0 0 15px var(--button-active)' : '2px 2px 5px rgba(0,0,0,0.5)',
-                                transform: isActive ? 'scale(0.95)' : 'scale(1)',
+                                transform: 'scale(1)',
                                 transition: 'transform 0.05s, background-color 0.05s',
                                 zIndex: 10,
                                 pointerEvents: 'auto'

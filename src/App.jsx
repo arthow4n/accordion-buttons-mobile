@@ -22,7 +22,10 @@ function App() {
             rotate180: false,
             splitScreenImage: null,
             splitScreenRatio: 0.5,
-            splitScreenPosition: 'top'
+            splitScreenPosition: 'top',
+            imageScale: null,
+            imagePositionX: null,
+            imagePositionY: null
         };
         return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     });
@@ -42,7 +45,13 @@ function App() {
 
         const imageComponent = (
             <div style={{ flex: settings.splitScreenRatio, overflow: 'hidden', position: 'relative' }}>
-                <ImageViewer imageSrc={settings.splitScreenImage} />
+                <ImageViewer
+                    imageSrc={settings.splitScreenImage}
+                    initialScale={settings.imageScale}
+                    initialPositionX={settings.imagePositionX}
+                    initialPositionY={settings.imagePositionY}
+                    onUpdateSettings={(newSettings) => setSettings(prev => ({ ...prev, ...newSettings }))}
+                />
             </div>
         );
 

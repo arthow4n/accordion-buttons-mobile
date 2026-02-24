@@ -16,7 +16,8 @@ function App() {
             panY: 0,
             isLocked: true,
             textRotation: 0,
-            volume: 100
+            volume: 100,
+            rotate180: false
         };
     });
 

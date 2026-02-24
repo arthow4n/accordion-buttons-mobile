@@ -186,7 +186,7 @@ export const Accordion = ({ settings, updateSettings }) => {
                 left: 0,
                 width: '100%',
                 height: '100%',
-                transform: `translate(${settings.panX || 0}px, ${settings.panY || 0}px)`,
+                transform: `translate(${settings.panX || 0}px, ${settings.panY || 0}px) rotate(${settings.rotate180 ? 180 : 0}deg)`,
                 transition: !settings.isLocked && dragRef.current.isDragging ? 'none' : 'transform 0.1s ease-out',
                 pointerEvents: !settings.isLocked ? 'none' : 'auto' // Disable button interaction when panning
             }}>

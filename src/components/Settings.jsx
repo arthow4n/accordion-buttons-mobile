@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Settings = ({ settings, updateSettings, onClose }) => {
     const handleChange = (key, value) => {
-        if (key === 'accidentalType' || key === 'isLocked' || key === 'register') {
+        if (key === 'accidentalType' || key === 'isLocked' || key === 'register' || key === 'rotate180') {
             updateSettings({ ...settings, [key]: value });
             return;
         }
@@ -20,7 +20,8 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
             accidentalType: 'sharp',
             isLocked: true,
             textRotation: 0,
-            volume: 100
+            volume: 100,
+            rotate180: false
         });
     };
 
@@ -106,6 +107,18 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
                 <p style={{ fontSize: '0.8em', color: '#ccc', margin: '5px 0 0 30px' }}>
                     Uncheck to drag and pan the view. Lock to play.
                 </p>
+            </div>
+
+            <div className="control-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2em', color: '#fff' }}>
+                    <input
+                        type="checkbox"
+                        checked={settings.rotate180 ?? false}
+                        onChange={(e) => handleChange('rotate180', e.target.checked)}
+                        style={{ width: '20px', height: '20px' }}
+                    />
+                    Rotate 180°
+                </label>
             </div>
 
             <div className="control-group">

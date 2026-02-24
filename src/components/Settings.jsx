@@ -2,12 +2,31 @@ import React from 'react';
 
 export const Settings = ({ settings, updateSettings, onClose }) => {
     const handleChange = (key, value) => {
-        if (key === 'accidentalType' || key === 'isLocked' || key === 'register' || key === 'rotate180') {
+        if (key === 'accidentalType' || key === 'isLocked' || key === 'register' || key === 'rotate180' || key === 'splitScreenPosition') {
             updateSettings({ ...settings, [key]: value });
+            return;
+        }
+        if (key === 'splitScreenRatio') {
+            updateSettings({ ...settings, [key]: parseFloat(value) });
             return;
         }
         const parsedValue = parseInt(value, 10);
         updateSettings({ ...settings, [key]: isNaN(parsedValue) ? 0 : parsedValue });
+    };
+
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                updateSettings({ ...settings, splitScreenImage: event.target.result });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        updateSettings({ ...settings, splitScreenImage: null });
     };
 
     const handleReset = () => {
@@ -21,7 +40,10 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
             isLocked: true,
             textRotation: 0,
             volume: 100,
-            rotate180: false
+            rotate180: false,
+            splitScreenImage: null,
+            splitScreenRatio: 0.5,
+            splitScreenPosition: 'top'
         });
     };
 
@@ -93,6 +115,93 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
             >
                 Go Fullscreen
             </button>
+
+            <div className="control-group">
+                <h3 style={{ color: '#fff', borderBottom: '1px solid #555', paddingBottom: '5px' }}>Split Screen (Sheet Music)</h3>
+
+                {!settings.splitScreenImage ? (
+                    <div style={{ marginTop: '10px' }}>
+                        <label style={{
+                            display: 'inline-block',
+                            padding: '10px 20px',
+                            backgroundColor: '#444',
+                            color: '#fff',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            border: '1px solid #666'
+                        }}>
+                            Load Image
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                style={{ display: 'none' }}
+                            />
+                        </label>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <img
+                                src={settings.splitScreenImage}
+                                alt="Preview"
+                                style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '5px' }}
+                            />
+                            <button
+                                onClick={handleRemoveImage}
+                                style={{
+                                    padding: '8px 15px',
+                                    backgroundColor: '#d9534f',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Remove Image
+                            </button>
+                        </div>
+
+                        <div className="control-group">
+                            <label style={{ color: '#fff' }}>Split Ratio (Image Height: {Math.round(settings.splitScreenRatio * 100)}%)</label>
+                            <input
+                                type="range"
+                                min="10"
+                                max="90"
+                                value={settings.splitScreenRatio * 100}
+                                onChange={(e) => handleChange('splitScreenRatio', e.target.value / 100)}
+                                style={{ width: '100%', marginTop: '5px' }}
+                            />
+                        </div>
+
+                        <div className="control-group">
+                            <label style={{ color: '#fff' }}>Layout Position</label>
+                            <div style={{ display: 'flex', gap: '20px', marginTop: '5px', color: '#fff' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <input
+                                        type="radio"
+                                        name="splitScreenPosition"
+                                        value="top"
+                                        checked={settings.splitScreenPosition === 'top'}
+                                        onChange={() => handleChange('splitScreenPosition', 'top')}
+                                    />
+                                    Image Top
+                                </label>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <input
+                                        type="radio"
+                                        name="splitScreenPosition"
+                                        value="bottom"
+                                        checked={settings.splitScreenPosition === 'bottom'}
+                                        onChange={() => handleChange('splitScreenPosition', 'bottom')}
+                                    />
+                                    Image Bottom
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <div className="control-group">
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2em', color: '#fff' }}>

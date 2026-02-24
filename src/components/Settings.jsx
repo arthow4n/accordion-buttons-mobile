@@ -24,7 +24,8 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
                     splitScreenImage: event.target.result,
                     imageScale: null,
                     imagePositionX: null,
-                    imagePositionY: null
+                    imagePositionY: null,
+                    imageRotation: null
                 });
             };
             reader.readAsDataURL(file);
@@ -37,7 +38,8 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
             splitScreenImage: null,
             imageScale: null,
             imagePositionX: null,
-            imagePositionY: null
+            imagePositionY: null,
+            imageRotation: null
         });
     };
 
@@ -286,9 +288,9 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
                         <option value="full_master">Full Master (LMMH)</option>
                     </optgroup>
                     <optgroup label="Single Reed">
-                        <option value="clarinet">Clarinet (8')</option>
-                        <option value="bassoon">Bassoon (16')</option>
-                        <option value="piccolo">Piccolo (4')</option>
+                        <option value="clarinet">Clarinet (8&apos;)</option>
+                        <option value="bassoon">Bassoon (16&apos;)</option>
+                        <option value="piccolo">Piccolo (4&apos;)</option>
                     </optgroup>
                     <optgroup label="Dual Reed">
                         <option value="violin">Violin (MM)</option>

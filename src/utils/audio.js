@@ -145,7 +145,7 @@ export class AudioEngine {
         this.filter.type = preset.filterType;
     }
 
-    play(note, frequency) {
+    play(note) {
         // Play all octaves defined in the preset
         const octaves = this.currentPreset.octaves || [0];
         octaves.forEach(offset => {

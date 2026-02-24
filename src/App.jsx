@@ -25,7 +25,8 @@ function App() {
             splitScreenPosition: 'top',
             imageScale: null,
             imagePositionX: null,
-            imagePositionY: null
+            imagePositionY: null,
+            imageRotation: null
         };
         return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     });
@@ -50,6 +51,7 @@ function App() {
                     initialScale={settings.imageScale}
                     initialPositionX={settings.imagePositionX}
                     initialPositionY={settings.imagePositionY}
+                    initialRotation={settings.imageRotation}
                     onUpdateSettings={(newSettings) => setSettings(prev => ({ ...prev, ...newSettings }))}
                 />
             </div>

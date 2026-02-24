@@ -19,14 +19,26 @@ export const Settings = ({ settings, updateSettings, onClose }) => {
         if (file) {
             const reader = new FileReader();
             reader.onload = (event) => {
-                updateSettings({ ...settings, splitScreenImage: event.target.result });
+                updateSettings({
+                    ...settings,
+                    splitScreenImage: event.target.result,
+                    imageScale: null,
+                    imagePositionX: null,
+                    imagePositionY: null
+                });
             };
             reader.readAsDataURL(file);
         }
     };
 
     const handleRemoveImage = () => {
-        updateSettings({ ...settings, splitScreenImage: null });
+        updateSettings({
+            ...settings,
+            splitScreenImage: null,
+            imageScale: null,
+            imagePositionX: null,
+            imagePositionY: null
+        });
     };
 
     const handleReset = () => {
